@@ -1,0 +1,25 @@
+import type { BusinessSettings } from "./types";
+
+export const DEFAULT_SETTINGS: BusinessSettings = {
+  business_name: "DetailFlow",
+  tagline: "Premium car care, booked in 60 seconds.",
+  email: "hello@detailflow.se",
+  phone: "08-123 45 67",
+  address: "Industrivägen 8",
+  postal_code: "171 48",
+  city: "Solna",
+  org_number: "559123-4567",
+  currency: "kr",
+  vat_rate: 25,
+  open_days: [1, 2, 3, 4, 5, 6],
+  open_from: "08:00",
+  open_to: "18:00",
+  slot_minutes: 30,
+  booking_enabled: true,
+  onsite_enabled: true,
+  onsite_fee: 250,
+  lead_time_hours: 12,
+  max_days_ahead: 60,
+  condition_surcharge: { normal: 0, dirty: 15, very_dirty: 30 },
+  size_multiplier: { small: 0.9, medium: 1, large: 1.15, xl: 1.3 },
+};

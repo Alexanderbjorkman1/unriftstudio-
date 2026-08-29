@@ -25,10 +25,11 @@ export interface JobFilter {
   vehicleId?: number;
   search?: string;
   limit?: number;
+  offset?: number;
   order?: "asc" | "desc";
 }
 
-export function listJobs(filter: JobFilter = {}): JobRow[] {
+function jobWhere(filter: JobFilter) {
   const where: string[] = [];
   const params: Record<string, unknown> = {};
 
@@ -65,12 +66,32 @@ export function listJobs(filter: JobFilter = {}): JobRow[] {
     params.like = `%${filter.search.trim()}%`;
   }
 
+  return { clause: where.length ? `WHERE ${where.join(" AND ")}` : "", params };
+}
+
+export function listJobs(filter: JobFilter = {}): JobRow[] {
+  const { clause, params } = jobWhere(filter);
+  const limit = filter.limit ? `LIMIT ${Number(filter.limit)}` : filter.offset ? "LIMIT -1" : "";
+  const offset = filter.offset ? `OFFSET ${Number(filter.offset)}` : "";
+
   const sql = `${JOB_SELECT}
-    ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+    ${clause}
     ORDER BY j.scheduled_at ${filter.order === "desc" ? "DESC" : "ASC"}
-    ${filter.limit ? `LIMIT ${Number(filter.limit)}` : ""}`;
+    ${limit} ${offset}`;
 
   return getDb().prepare(sql).all(params) as JobRow[];
+}
+
+export function countJobs(filter: JobFilter = {}) {
+  const { clause, params } = jobWhere(filter);
+  const row = getDb()
+    .prepare(
+      `SELECT COUNT(*) AS n FROM jobs j
+         LEFT JOIN customers c ON c.id = j.customer_id
+         LEFT JOIN vehicles v ON v.id = j.vehicle_id ${clause}`,
+    )
+    .get(params) as { n: number };
+  return row.n;
 }
 
 export function getJob(id: number): JobRow | undefined {

@@ -19,7 +19,7 @@ const INVOICE_SELECT = `
     LEFT JOIN customers c ON c.id = i.customer_id
     LEFT JOIN jobs j ON j.id = i.job_id`;
 
-export function listInvoices(status: InvoiceStatus | "all" = "all", search = ""): InvoiceRow[] {
+function invoiceFilter(status: InvoiceStatus | "all", search: string) {
   const where: string[] = [];
   const params: Record<string, unknown> = {};
   if (status !== "all") {
@@ -30,9 +30,27 @@ export function listInvoices(status: InvoiceStatus | "all" = "all", search = "")
     where.push("(c.name LIKE @like OR i.invoice_number LIKE @like)");
     params.like = `%${search.trim()}%`;
   }
+  return { clause: where.length ? `WHERE ${where.join(" AND ")}` : "", params };
+}
+
+export function listInvoices(
+  status: InvoiceStatus | "all" = "all",
+  search = "",
+  page?: { limit: number; offset: number },
+): InvoiceRow[] {
+  const { clause, params } = invoiceFilter(status, search);
+  const paging = page ? `LIMIT ${Number(page.limit)} OFFSET ${Number(page.offset)}` : "";
   return getDb()
-    .prepare(`${INVOICE_SELECT} ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY i.issued_at DESC, i.id DESC`)
+    .prepare(`${INVOICE_SELECT} ${clause} ORDER BY i.issued_at DESC, i.id DESC ${paging}`)
     .all(params) as InvoiceRow[];
+}
+
+export function countInvoices(status: InvoiceStatus | "all" = "all", search = "") {
+  const { clause, params } = invoiceFilter(status, search);
+  const row = getDb()
+    .prepare(`SELECT COUNT(*) AS n FROM invoices i LEFT JOIN customers c ON c.id = i.customer_id ${clause}`)
+    .get(params) as { n: number };
+  return row.n;
 }
 
 export function getInvoice(id: number) {

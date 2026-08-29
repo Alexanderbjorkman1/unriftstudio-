@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Plus, Receipt } from "lucide-react";
 import { Badge, Card, EmptyState, LinkButton, Table, Td, Th } from "@/components/ui";
 import { FilterTabs, SearchInput } from "@/components/admin/filters";
-import { listInvoices } from "@/lib/repo/invoices";
+import { Pagination } from "@/components/admin/pagination";
+import { countInvoices, listInvoices } from "@/lib/repo/invoices";
 import { INVOICE_STATUS_TONE, money } from "@/lib/format";
 import { formatDate } from "@/lib/dates";
 import { dayKey } from "@/lib/dates";
@@ -14,10 +15,16 @@ export const metadata = { title: "Invoices" };
 export default async function InvoicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; page?: string }>;
 }) {
-  const { status = "all", q = "" } = await searchParams;
-  const invoices = listInvoices(status as InvoiceStatus | "all", q);
+  const { status = "all", q = "", page: pageParam } = await searchParams;
+  const PAGE_SIZE = 25;
+  const total = countInvoices(status as InvoiceStatus | "all", q);
+  const page = Math.min(Math.max(1, Number(pageParam) || 1), Math.max(1, Math.ceil(total / PAGE_SIZE)));
+  const invoices = listInvoices(status as InvoiceStatus | "all", q, {
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
+  });
   const all = listInvoices("all");
   const today = dayKey(new Date());
 
@@ -124,6 +131,13 @@ export default async function InvoicesPage({
             </tbody>
           </Table>
         )}
+        <Pagination
+          page={page}
+          pageSize={PAGE_SIZE}
+          total={total}
+          basePath="/invoices"
+          params={{ status: status === "all" ? undefined : status, q: q || undefined }}
+        />
       </Card>
     </div>
   );

@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Plus, Wrench } from "lucide-react";
 import { Badge, Card, EmptyState, LinkButton, Table, Td, Th } from "@/components/ui";
 import { FilterTabs, SearchInput, SelectFilter } from "@/components/admin/filters";
+import { Pagination } from "@/components/admin/pagination";
 import { VehicleThumb } from "@/components/car-art";
-import { listJobs } from "@/lib/repo/jobs";
+import { countJobs, listJobs } from "@/lib/repo/jobs";
 import { listTechnicians } from "@/lib/repo/users";
 import { getDb } from "@/lib/db";
 import { JOB_STATUS_LABEL, JOB_STATUS_TONE, money } from "@/lib/format";
@@ -25,9 +26,10 @@ const TABS: Array<{ value: string; label: string }> = [
 export default async function JobsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string; tech?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; tech?: string; page?: string }>;
 }) {
-  const { status = "all", q = "", tech } = await searchParams;
+  const { status = "all", q = "", tech, page: pageParam } = await searchParams;
+  const PAGE_SIZE = 25;
 
   const counts = getDb().prepare("SELECT status, COUNT(*) AS n FROM jobs GROUP BY status").all() as Array<{
     status: JobStatus;
@@ -36,13 +38,14 @@ export default async function JobsPage({
   const countMap = new Map(counts.map((c) => [c.status as string, c.n]));
   const total = counts.reduce((sum, c) => sum + c.n, 0);
 
-  const jobs = listJobs({
+  const filter = {
     status: status as JobStatus | "all",
     search: q,
     technicianId: tech ? Number(tech) : undefined,
-    order: "desc",
-    limit: 200,
-  });
+  };
+  const totalJobs = countJobs(filter);
+  const page = Math.min(Math.max(1, Number(pageParam) || 1), Math.max(1, Math.ceil(totalJobs / PAGE_SIZE)));
+  const jobs = listJobs({ ...filter, order: "desc", limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE });
   const technicians = listTechnicians();
 
   return (
@@ -135,6 +138,13 @@ export default async function JobsPage({
             </tbody>
           </Table>
         )}
+        <Pagination
+          page={page}
+          pageSize={PAGE_SIZE}
+          total={totalJobs}
+          basePath="/jobs"
+          params={{ status: status === "all" ? undefined : status, q: q || undefined, tech }}
+        />
       </Card>
     </div>
   );

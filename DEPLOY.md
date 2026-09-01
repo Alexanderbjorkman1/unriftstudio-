@@ -87,6 +87,41 @@ Before you use it for real work, change the demo passwords under
 
 ---
 
+## Using it for real work
+
+Open **Settings → Go live**. The checklist there is computed from your actual
+data, not ticked by hand, and it will tell you what is still outstanding:
+
+1. **Create your own login**, then **disable the demo accounts**. Their passwords
+   are printed in this README for anyone to read. Disabling refuses to run until
+   you have your own owner account, so you cannot lock yourself out.
+2. **Put in your business details** (Settings → Business). They appear on your
+   booking site and on every invoice.
+3. **Replace the services and prices** (Settings → Services) with what you
+   actually sell, and set your real **opening hours** (Settings → Online booking).
+4. **Clear the demo bookings** when you are ready to start from an empty diary.
+   It takes a backup first and asks you to type CLEAR.
+
+### Optional accounts
+
+Everything below is off by default and the app works without any of it. Add a
+key and that feature switches on — no code changes.
+
+| What you get | Sign up at | Put in `.env.local` |
+| --- | --- | --- |
+| Emailed confirmations and reminders | [resend.com](https://resend.com) | `RESEND_API_KEY` |
+| SMS confirmations and reminders | [46elks.com](https://46elks.com) (Swedish) or Twilio | `ELKS_API_USERNAME`, `ELKS_API_PASSWORD` |
+| Card deposits at booking | [stripe.com](https://stripe.com) | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
+
+Until then, every message is still written down and shown in **Messages**,
+marked with the exact variable to set — so you can see what your customers
+*would* have received before spending anything.
+
+**Test before trusting it.** Settings → Messages has a "Send test" button next
+to each channel once its key is set. Send one to yourself first.
+
+---
+
 ## Later: putting it on the internet
 
 Only needed if you want to send the booking link to real customers, or use it

@@ -1,119 +1,98 @@
-# Running DetailFlow
+# Running DetailFlow on your computer
 
-Two ways to use the platform. Start with the first — it takes two minutes and
-needs no accounts.
+Everything runs on your own machine. The database and the job photos are plain
+files in the `data` folder next to this one — nothing is uploaded anywhere, and
+the app works with the internet off.
 
 ---
 
-## Option 1 — On your own computer (recommended for testing)
+## The easy way
 
-You need [Node.js](https://nodejs.org) version 20 or newer. Check with `node -v`.
+1. Install [Node.js](https://nodejs.org) if you don't have it — press the big
+   **LTS** button and click through the installer. You only do this once.
+2. Open the project folder and double-click:
 
-```bash
-git clone -b claude/car-detailing-app-we7ab1 https://github.com/Alexanderbjorkman1/unriftstudio-.git
-cd unriftstudio-
-npm install
-npm run seed
-npm run dev
-```
+   | Your computer | Double-click |
+   | --- | --- |
+   | Mac | **`start.command`** |
+   | Windows | **`start.bat`** |
+   | Linux | **`start.sh`** |
 
-Open **http://localhost:3000**.
+That's it. A window opens, sets itself up the first time (a minute or two), and
+your browser lands on the app.
 
-| Where | What | Sign in with |
+**Leave that window open** while you use DetailFlow — it *is* the app. Closing it
+or pressing `Ctrl+C` shuts the site down. To use it again another day, just
+double-click the same file.
+
+> **Mac:** the first time, macOS may say the file is from an unidentified
+> developer. Right-click `start.command` → **Open** → **Open**. You only have to
+> do that once.
+
+## Where to go once it opens
+
+| Address | What it is | Sign in with |
 | --- | --- | --- |
-| `/` | Customer booking website | nothing — it's public |
-| `/dashboard` | Your admin workspace | `alex@detailflow.se` / `demo1234` |
-| `/app` | Technician app | `johan@detailflow.se` / `demo1234` |
+| http://localhost:3000 | Your customer booking website | nothing — it's public |
+| http://localhost:3000/dashboard | Your admin workspace | `alex@detailflow.se` / `demo1234` |
+| http://localhost:3000/app | The technician app | `johan@detailflow.se` / `demo1234` |
 
-### Use it on your phone
+A good first run-through: book a detail on the booking site as if you were a
+customer, then sign in to the dashboard and watch it appear on the calendar with
+a technician already assigned.
 
-`npm run dev` prints two addresses:
+## On your phone
+
+While the app is running, the window shows two addresses:
 
 ```
 - Local:    http://localhost:3000
 - Network:  http://192.168.1.42:3000     ← this one
 ```
 
-Open the **Network** address on your phone while it's on the same Wi-Fi. The
-technician app at `/app` then behaves like a real phone app, camera upload
-included. Your computer has to stay awake and on the same network.
-
-### Starting over
-
-`npm run seed` wipes the database and rebuilds the demo data. Safe to run any
-time you want a clean slate.
+Type the **Network** one into your phone's browser while it's on the same Wi-Fi.
+The technician app at `/app` then works like a real phone app, camera and all.
+Your computer needs to stay awake and running the app.
 
 ---
 
-## Option 2 — A real URL on the internet
+## The terminal way
 
-Useful once you want to send the booking link to an actual customer, or use it
-away from your own Wi-Fi.
+If you'd rather type commands:
 
-### What this app needs from a host
+```bash
+npm install     # first time only
+npm run dev
+```
 
-DetailFlow keeps its data in a **SQLite file** and stores **job photos on disk**,
-both under the path in `DATABASE_PATH`. So the host must give you a **persistent
-disk** (sometimes called a volume).
+Then open http://localhost:3000.
 
-This rules out Vercel and Netlify — their filesystems reset between requests, so
-every booking and photo would disappear. Hosts that work: **Railway**,
-**Fly.io**, **Render** (paid tier), or any VPS.
+## Your data
 
-### Railway, step by step
+Everything lives in the **`data`** folder:
 
-1. Sign in at [railway.app](https://railway.app) with your GitHub account.
-2. **New Project → Deploy from GitHub repo →** pick `unriftstudio-`.
-3. Open **Settings → Source** and set the branch to `claude/car-detailing-app-we7ab1`.
-   Railway detects the `Dockerfile` in the repo and builds from it.
-4. Open the **Variables** tab and add:
+- `detailflow.db` — every customer, job, invoice and setting
+- `uploads/` — the before & after photos
 
-   ```
-   DATABASE_PATH = /data/detailflow.db
-   ```
+The first launch fills it with demo data so the app isn't empty. Two things worth
+knowing:
 
-5. Open the **Volumes** tab, **add a volume**, and set its mount path to `/data`.
-   This is the step that keeps your bookings and photos between deploys — don't
-   skip it.
-6. Under **Settings → Networking**, click **Generate Domain**.
+- **To back up:** copy the `data` folder somewhere safe. That's the whole backup.
+- **To start fresh:** run `npm run seed`, which wipes it and rebuilds the demo
+  data. Do this before entering real customers, so you're not mixing them with
+  the fake ones.
 
-First boot creates the database and fills it with the demo data automatically.
-Sign in at `your-domain.up.railway.app/login` with `alex@detailflow.se` /
-`demo1234`.
-
-### Before real customers use it
-
-- **Change the passwords.** Settings → Employees → edit each person. The demo
-  accounts are documented publicly in this repo.
-- **Put in your own business details** under Settings → Business: name, address,
-  org. number, phone. They appear on the booking site and on every invoice.
-- **Set your opening hours and services** under Settings → Online booking and
-  Settings → Services, so the booking calendar reflects your real availability.
-- **Back up the volume.** Everything lives in that one folder. Copying
-  `detailflow.db` and the `uploads` folder somewhere safe is a complete backup.
+Before you use it for real work, change the demo passwords under
+**Settings → Employees** — they're written down in this repo for anyone to read.
 
 ---
 
-## What was tested, and what wasn't
+## Later: putting it on the internet
 
-Verified on a clean checkout in this repo: `npm install`, `npm run seed`,
-`npm run dev`, `npm run build`, `npm run lint`, `npm run typecheck`, and the
-production standalone server booting against an empty data directory and seeding
-itself.
+Only needed if you want to send the booking link to real customers, or use it
+away from your own Wi-Fi. There's a `Dockerfile` in the repo for hosts that give
+you a persistent disk (Railway, Fly.io, Render, a VPS).
 
-**Not verified:** the Docker image build. The environment this was written in had
-no Docker daemon, so `Dockerfile` is written from the (verified) standalone build
-but has never been built or run. If Railway's build fails, the error will be in
-its build log and the fix will be small — say the word and I'll sort it out.
-
----
-
-## Configuration
-
-| Variable | What it does | Default |
-| --- | --- | --- |
-| `DATABASE_PATH` | Where the database and `uploads/` folder live | `./data/detailflow.db` |
-| `PORT` | Port the server listens on | `3000` |
-
-That's the whole list. Sessions use random tokens stored in the database, so
-there is no signing secret to manage.
+Note it can't go on Vercel or Netlify — they wipe the filesystem between
+requests, so the database and photos would disappear. Ask me when you want to
+tackle this and I'll walk you through it.

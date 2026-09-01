@@ -10,11 +10,22 @@ Built with Next.js (App Router), TypeScript, Tailwind v4 and SQLite.
 
 ## Quick start
 
+Double-click **`start.command`** (Mac), **`start.bat`** (Windows) or
+**`start.sh`** (Linux). It installs what it needs on first run, starts the app
+and opens your browser. Node.js 20+ must be installed.
+
+Prefer a terminal?
+
 ```bash
 npm install
-npm run seed     # creates ./data/detailflow.db with demo data
 npm run dev      # http://localhost:3000
 ```
+
+The database is created and filled with demo data on first launch, so there is
+no separate setup step. `npm run seed` wipes it and starts over.
+
+Everything runs locally — the database and photos are files in `./data`, and
+nothing is sent anywhere. See **[DEPLOY.md](./DEPLOY.md)** for the full walkthrough.
 
 ### Demo accounts
 

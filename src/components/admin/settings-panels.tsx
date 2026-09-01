@@ -7,6 +7,9 @@ import { Check, Pencil, Plus, X } from "lucide-react";
 import { Badge, Button, Card, Field, Input, Select, Textarea, cn } from "@/components/ui";
 import { deleteServiceAction, saveServiceAction, saveSettingsAction } from "@/lib/actions/crm";
 import { MessagesSettings, type ProviderView } from "@/components/admin/messages-settings";
+import { GoLiveSettings } from "@/components/admin/golive-settings";
+import type { GoLiveCheck } from "@/lib/actions/golive";
+import type { BackupFile } from "@/lib/backup";
 import { duration, money } from "@/lib/format";
 import { DAY_NAMES } from "@/lib/dates";
 import type { BusinessSettings, Service } from "@/lib/types";
@@ -17,6 +20,7 @@ const TABS = [
   { value: "services", label: "Services" },
   { value: "pricing", label: "Pricing rules" },
   { value: "messages", label: "Messages" },
+  { value: "golive", label: "Go live" },
 ];
 
 export function SettingsPanels({
@@ -26,6 +30,8 @@ export function SettingsPanels({
   initialTab,
   email,
   sms,
+  goLiveChecks,
+  backups,
 }: {
   settings: BusinessSettings;
   services: Service[];
@@ -33,6 +39,8 @@ export function SettingsPanels({
   initialTab: string;
   email: ProviderView;
   sms: ProviderView;
+  goLiveChecks: GoLiveCheck[];
+  backups: BackupFile[];
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -68,7 +76,9 @@ export function SettingsPanels({
         ))}
       </div>
 
-      {tab === "services" ? (
+      {tab === "golive" ? (
+        <GoLiveSettings checks={goLiveChecks} backups={backups} />
+      ) : tab === "services" ? (
         <ServicesPanel services={services} />
       ) : (
         <form action={saveSettingsAction} className="space-y-4">

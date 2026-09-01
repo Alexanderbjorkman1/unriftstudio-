@@ -4,6 +4,7 @@ import { getSettings } from "@/lib/repo/settings";
 import { getService } from "@/lib/repo/services";
 import { computePrice } from "@/lib/pricing";
 import { dayKey } from "@/lib/dates";
+import { clientKey, rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import type { VehicleCondition, VehicleSize } from "@/lib/types";
 
 /**
@@ -11,6 +12,12 @@ import type { VehicleCondition, VehicleSize } from "@/lib/types";
  * bookable slots for a day plus a per-day summary for the date picker.
  */
 export async function GET(request: Request) {
+  // The wizard polls this as the customer changes options; generous, but capped.
+  const limit = rateLimit(clientKey(request, "avail"), 120, 60_000);
+  if (!limit.allowed) {
+    return tooManyRequests(limit.retryAfterSeconds, "Too many requests. Wait a moment and try again.");
+  }
+
   const url = new URL(request.url);
   const settings = getSettings();
   if (!settings.booking_enabled) {

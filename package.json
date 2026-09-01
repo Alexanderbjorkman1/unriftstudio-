@@ -9,7 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
-    "test": "tsx tests/notifications.mts"
+    "test": "tsx tests/notifications.mts && tsx tests/golive.mts"
   },
   "dependencies": {
     "@types/better-sqlite3": "^9.6.0",

@@ -3,6 +3,8 @@ import { SettingsPanels } from "@/components/admin/settings-panels";
 import { getSettings } from "@/lib/repo/settings";
 import { listServices } from "@/lib/repo/services";
 import { emailStatus, smsStatus } from "@/lib/notify/providers";
+import { goLiveStatus } from "@/lib/actions/golive";
+import { listBackups } from "@/lib/backup";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Settings" };
@@ -22,6 +24,8 @@ export default async function SettingsPage({
         initialTab={tab}
         email={emailStatus()}
         sms={smsStatus()}
+        goLiveChecks={await goLiveStatus()}
+        backups={listBackups()}
       />
     </Suspense>
   );

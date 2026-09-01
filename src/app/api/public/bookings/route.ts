@@ -8,6 +8,7 @@ import { findOrCreateVehicle } from "@/lib/repo/vehicles";
 import { createJob } from "@/lib/repo/jobs";
 import { queueBookingMessages } from "@/lib/notify/outbox";
 import { flushSoon } from "@/lib/notify/scheduler";
+import { clientKey, rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import type { VehicleCondition, VehicleSize } from "@/lib/types";
 
 interface BookingPayload {
@@ -36,6 +37,15 @@ function invalid(message: string) {
 }
 
 export async function POST(request: Request) {
+  // A real customer books once or twice. This stops a script filling the diary.
+  const limit = rateLimit(clientKey(request, "book"), 5, 60 * 60_000);
+  if (!limit.allowed) {
+    return tooManyRequests(
+      limit.retryAfterSeconds,
+      "That's a lot of bookings from one place. Give us a call and we'll sort it out directly.",
+    );
+  }
+
   const settings = getSettings();
   if (!settings.booking_enabled) return invalid("Online booking is currently closed.");
 

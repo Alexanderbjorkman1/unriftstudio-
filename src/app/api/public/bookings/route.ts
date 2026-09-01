@@ -6,6 +6,8 @@ import { checklistFor, getService } from "@/lib/repo/services";
 import { upsertCustomerByContact } from "@/lib/repo/customers";
 import { findOrCreateVehicle } from "@/lib/repo/vehicles";
 import { createJob } from "@/lib/repo/jobs";
+import { queueBookingMessages } from "@/lib/notify/outbox";
+import { flushSoon } from "@/lib/notify/scheduler";
 import type { VehicleCondition, VehicleSize } from "@/lib/types";
 
 interface BookingPayload {
@@ -106,6 +108,12 @@ export async function POST(request: Request) {
     services: [{ service_id: service.id, name: service.name, price: price.total, duration_min: price.durationMin }],
     checklist: checklistFor(service),
   });
+
+  // Confirmation to the customer, alert to the owner, reminder scheduled for
+  // the day before. Queued inside the request, delivered by the outbox ticker,
+  // so a slow mail provider never holds up the booking.
+  queueBookingMessages(id);
+  flushSoon();
 
   return NextResponse.json({ id, jobNumber, price: price.total });
 }

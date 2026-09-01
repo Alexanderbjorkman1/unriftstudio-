@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
-  BarChart3, CalendarDays, Car, FileText, LayoutDashboard, LogOut, Menu, Package,
+  BarChart3, CalendarDays, Car, FileText, LayoutDashboard, LogOut, Mail, Menu, Package,
   Receipt, Settings, Sparkles, Smartphone, Users, Wrench, X,
 } from "lucide-react";
 import { Avatar, cn } from "@/components/ui";
@@ -18,6 +18,7 @@ const NAV = [
   { href: "/vehicles", label: "Vehicles", icon: Car },
   { href: "/quotes", label: "Quotes", icon: FileText },
   { href: "/invoices", label: "Invoices", icon: Receipt },
+  { href: "/messages", label: "Messages", icon: Mail },
   { href: "/products", label: "Products", icon: Package },
   { href: "/employees", label: "Employees", icon: Users },
   { href: "/reports", label: "Reports", icon: BarChart3 },

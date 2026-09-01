@@ -22,4 +22,12 @@ export const DEFAULT_SETTINGS: BusinessSettings = {
   max_days_ahead: 60,
   condition_surcharge: { normal: 0, dirty: 15, very_dirty: 30 },
   size_multiplier: { small: 0.9, medium: 1, large: 1.15, xl: 1.3 },
+
+  notify_email_enabled: true,
+  notify_sms_enabled: false,
+  email_from: "",
+  sms_sender: "",
+  reminder_hours_before: 24,
+  owner_alert_email: "",
+  deposit_percent: 0,
 };

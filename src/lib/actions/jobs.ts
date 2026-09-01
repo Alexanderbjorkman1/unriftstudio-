@@ -8,6 +8,8 @@ import { checklistFor, getService } from "@/lib/repo/services";
 import { getSettings } from "@/lib/repo/settings";
 import { invoiceFromJob } from "@/lib/repo/invoices";
 import { adjustStock, getProduct } from "@/lib/repo/products";
+import { dropPendingReminders, queueJobCompleted, queueReminder } from "@/lib/notify/outbox";
+import { flushSoon } from "@/lib/notify/scheduler";
 import type { JobStatus } from "@/lib/types";
 
 function numberOrNull(value: FormDataEntryValue | null) {
@@ -72,7 +74,16 @@ export async function setJobStatusAction(id: number, status: JobStatus) {
   // Completing a job drafts its invoice so nothing gets billed late.
   if (status === "completed") {
     invoiceFromJob(id, getSettings().vat_rate);
+    const products = jobsRepo.jobProducts(id);
+    const job = jobsRepo.getJob(id);
+    if (job) queueJobCompleted(id, jobsRepo.jobTotal(job, products));
   }
+
+  // A finished or cancelled job must not still nudge the customer tomorrow.
+  if (status === "completed" || status === "cancelled") {
+    dropPendingReminders(id);
+  }
+  flushSoon();
   revalidatePath(`/jobs/${id}`);
   revalidatePath("/jobs");
   revalidatePath("/app");
@@ -92,6 +103,9 @@ export async function deleteJobAction(id: number) {
 export async function rescheduleJobAction(id: number, scheduledAt: string, technicianId?: number | null) {
   await requireRole("owner");
   jobsRepo.rescheduleJob(id, scheduledAt, technicianId);
+  // The old reminder points at the old time — replace it.
+  dropPendingReminders(id);
+  queueReminder(id);
   revalidatePath("/calendar");
   revalidatePath("/jobs");
 }

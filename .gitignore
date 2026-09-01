@@ -39,10 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-# local data (sqlite database + uploaded photos)
+# Local data: the database, its backups, and uploaded job photos.
+# These hold real customer data once the shop is live — never commit them.
+/data/**/*.db
+/data/**/*.db-journal
+/data/**/*.db-wal
+/data/**/*.db-shm
 /data/*.db
 /data/*.db-journal
 /data/*.db-wal
 /data/*.db-shm
+/data/backups/
 /data/uploads/*
 !/data/uploads/.gitkeep

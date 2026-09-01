@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Pencil, Plus, X } from "lucide-react";
 import { Badge, Button, Card, Field, Input, Select, Textarea, cn } from "@/components/ui";
 import { deleteServiceAction, saveServiceAction, saveSettingsAction } from "@/lib/actions/crm";
+import { MessagesSettings, type ProviderView } from "@/components/admin/messages-settings";
 import { duration, money } from "@/lib/format";
 import { DAY_NAMES } from "@/lib/dates";
 import type { BusinessSettings, Service } from "@/lib/types";
@@ -15,6 +16,7 @@ const TABS = [
   { value: "booking", label: "Online booking" },
   { value: "services", label: "Services" },
   { value: "pricing", label: "Pricing rules" },
+  { value: "messages", label: "Messages" },
 ];
 
 export function SettingsPanels({
@@ -22,11 +24,15 @@ export function SettingsPanels({
   services,
   saved,
   initialTab,
+  email,
+  sms,
 }: {
   settings: BusinessSettings;
   services: Service[];
   saved: boolean;
   initialTab: string;
+  email: ProviderView;
+  sms: ProviderView;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -72,6 +78,7 @@ export function SettingsPanels({
           {tab === "business" && <BusinessPanel settings={settings} />}
           {tab === "booking" && <BookingPanel settings={settings} />}
           {tab === "pricing" && <PricingPanel settings={settings} />}
+          {tab === "messages" && <MessagesSettings settings={settings} email={email} sms={sms} />}
 
           <Button type="submit" size="lg">
             Save settings
@@ -119,6 +126,15 @@ function HiddenSettings({ settings, tab }: { settings: BusinessSettings; tab: st
     );
   }
 
+  if (tab !== "messages") {
+    fields.push(
+      ["email_from", settings.email_from],
+      ["sms_sender", settings.sms_sender],
+      ["reminder_hours_before", settings.reminder_hours_before],
+      ["owner_alert_email", settings.owner_alert_email],
+    );
+  }
+
   return (
     <>
       {fields.map(([name, value]) => (
@@ -131,6 +147,12 @@ function HiddenSettings({ settings, tab }: { settings: BusinessSettings; tab: st
           ))}
           {settings.booking_enabled && <input type="hidden" name="booking_enabled" value="on" />}
           {settings.onsite_enabled && <input type="hidden" name="onsite_enabled" value="on" />}
+        </>
+      )}
+      {tab !== "messages" && (
+        <>
+          {settings.notify_email_enabled && <input type="hidden" name="notify_email_enabled" value="on" />}
+          {settings.notify_sms_enabled && <input type="hidden" name="notify_sms_enabled" value="on" />}
         </>
       )}
     </>

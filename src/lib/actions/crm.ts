@@ -230,6 +230,12 @@ export async function saveSettingsAction(form: FormData) {
       large: num(form, "size_large", 1.15),
       xl: num(form, "size_xl", 1.3),
     },
+    notify_email_enabled: form.get("notify_email_enabled") !== null,
+    notify_sms_enabled: form.get("notify_sms_enabled") !== null,
+    email_from: str(form, "email_from"),
+    sms_sender: str(form, "sms_sender"),
+    reminder_hours_before: num(form, "reminder_hours_before", 24),
+    owner_alert_email: str(form, "owner_alert_email"),
   };
   saveSettings(patch);
   revalidatePath("/settings");

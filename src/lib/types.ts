@@ -213,4 +213,37 @@ export interface BusinessSettings {
   max_days_ahead: number;
   condition_surcharge: Record<VehicleCondition, number>;
   size_multiplier: Record<VehicleSize, number>;
+
+  /* Customer messaging. Only non-secret configuration lives here — this object
+     is handed to client components, so API keys stay in environment variables. */
+  notify_email_enabled: boolean;
+  notify_sms_enabled: boolean;
+  email_from: string;
+  sms_sender: string;
+  reminder_hours_before: number;
+  owner_alert_email: string;
+  deposit_percent: number;
+}
+
+export type MessageChannel = "email" | "sms";
+export type MessageKind = "booking_confirmation" | "reminder" | "job_completed" | "owner_alert";
+export type MessageStatus = "queued" | "sent" | "failed" | "skipped";
+
+export interface OutboxMessage {
+  id: number;
+  job_id: number | null;
+  customer_id: number | null;
+  channel: MessageChannel;
+  kind: MessageKind;
+  recipient: string;
+  subject: string;
+  body: string;
+  status: MessageStatus;
+  error: string;
+  provider: string;
+  attempts: number;
+  dedupe_key: string | null;
+  send_after: string;
+  sent_at: string | null;
+  created_at: string;
 }

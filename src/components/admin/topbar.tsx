@@ -13,6 +13,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   "/vehicles": { title: "Vehicles", subtitle: "Full service history for every car you touch." },
   "/quotes": { title: "Quotes", subtitle: "Send estimates and turn them into jobs." },
   "/invoices": { title: "Invoices", subtitle: "Get paid faster, chase less." },
+  "/messages": { title: "Messages", subtitle: "Every confirmation and reminder sent to a customer." },
   "/products": { title: "Products", subtitle: "Chemicals, coatings and consumables." },
   "/employees": { title: "Employees", subtitle: "Your team, their hours and their output." },
   "/reports": { title: "Reports", subtitle: "Know your business." },

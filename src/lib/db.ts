@@ -9,7 +9,7 @@ import path from "node:path";
  */
 const globalForDb = globalThis as unknown as { detailflowDb?: Database.Database };
 
-function resolveDbPath() {
+export function resolveDbPath() {
   const configured = process.env.DATABASE_PATH ?? "./data/detailflow.db";
   return path.isAbsolute(configured) ? configured : path.join(process.cwd(), configured);
 }
@@ -232,6 +232,31 @@ export function migrate(db: Database.Database) {
       key   TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    /* Outbox: every customer message is written here first, then sent, so a
+       provider outage queues rather than loses, and the owner can audit what
+       actually went out. dedupe_key stops a reminder going twice. */
+    CREATE TABLE IF NOT EXISTS messages (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      job_id      INTEGER REFERENCES jobs(id) ON DELETE SET NULL,
+      customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL,
+      channel     TEXT NOT NULL,
+      kind        TEXT NOT NULL,
+      recipient   TEXT NOT NULL,
+      subject     TEXT NOT NULL DEFAULT '',
+      body        TEXT NOT NULL,
+      status      TEXT NOT NULL DEFAULT 'queued',
+      error       TEXT NOT NULL DEFAULT '',
+      provider    TEXT NOT NULL DEFAULT '',
+      attempts    INTEGER NOT NULL DEFAULT 0,
+      dedupe_key  TEXT UNIQUE,
+      send_after  TEXT NOT NULL,
+      sent_at     TEXT,
+      created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_messages_pending ON messages(status, send_after);
+    CREATE INDEX IF NOT EXISTS idx_messages_job ON messages(job_id);
 
     CREATE INDEX IF NOT EXISTS idx_jobs_scheduled ON jobs(scheduled_at);
     CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);

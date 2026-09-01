@@ -121,11 +121,20 @@ src/
 
 Copy `.env.example` to `.env.local`:
 
-| Variable              | Purpose                                            |
-| --------------------- | -------------------------------------------------- |
-| `DATABASE_PATH`       | SQLite file (default `./data/detailflow.db`)        |
-| `SESSION_SECRET`      | Change this in production                          |
-| `NEXT_PUBLIC_APP_URL` | Base URL used in booking links                     |
+| Variable        | Purpose                                              |
+| --------------- | ---------------------------------------------------- |
+| `DATABASE_PATH` | SQLite file and `uploads/` folder location           |
+| `PORT`          | Port the server listens on (default `3000`)          |
+
+Sessions use random tokens stored in the database, so there is no signing secret
+to manage.
+
+## Deploying
+
+See **[DEPLOY.md](./DEPLOY.md)** for running it on your own machine, opening it
+on your phone, and putting it on a real URL. In short: this app stores data in a
+SQLite file and photos on disk, so it needs a host with a persistent volume
+(Railway, Fly.io, Render, a VPS) rather than a serverless platform.
 
 ## Notes on data
 
@@ -137,4 +146,7 @@ Job photos are stored on disk and served through `/api/uploads/<file>`, which re
 signed-in session — customer cars never end up on a public URL.
 
 Passwords are hashed with scrypt from Node's standard library; sessions are httpOnly
-cookies stored in the `sessions` table.
+cookies backed by random tokens in the `sessions` table.
+
+The demo accounts above are public knowledge — change their passwords under
+Settings → Employees before letting real customers near it.

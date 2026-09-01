@@ -9,6 +9,8 @@ import { createJob } from "@/lib/repo/jobs";
 import { queueBookingMessages } from "@/lib/notify/outbox";
 import { flushSoon } from "@/lib/notify/scheduler";
 import { clientKey, rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { createCheckoutSession, stripeStatus } from "@/lib/payments/stripe";
+import { recordPending } from "@/lib/repo/payments";
 import type { VehicleCondition, VehicleSize } from "@/lib/types";
 
 interface BookingPayload {
@@ -125,5 +127,37 @@ export async function POST(request: Request) {
   queueBookingMessages(id);
   flushSoon();
 
-  return NextResponse.json({ id, jobNumber, price: price.total });
+  // If a deposit is configured and Stripe is connected, hand the wizard a
+  // checkout link. The booking already exists either way — a customer who
+  // abandons payment has still reserved the slot, and the shop can chase it.
+  let checkoutUrl: string | null = null;
+  const deposit = Math.round((price.total * (settings.deposit_percent ?? 0)) / 100);
+
+  if (deposit > 0 && stripeStatus().configured) {
+    try {
+      const origin = new URL(request.url).origin;
+      const session = await createCheckoutSession({
+        amount: deposit,
+        currency: "sek",
+        description: `Deposit for ${service.name} — ${jobNumber}`,
+        successUrl: `${origin}/booking/${jobNumber}?paid=1`,
+        cancelUrl: `${origin}/booking/${jobNumber}`,
+        customerEmail: payload.email?.trim() || undefined,
+        metadata: { job_number: jobNumber, job_id: String(id) },
+      });
+      recordPending({
+        jobId: id,
+        kind: "deposit",
+        amount: deposit,
+        currency: "sek",
+        providerRef: session.id,
+      });
+      checkoutUrl = session.url;
+    } catch (error) {
+      // A payment problem must not cost the shop the booking.
+      console.error("[stripe] could not start checkout:", error instanceof Error ? error.message : error);
+    }
+  }
+
+  return NextResponse.json({ id, jobNumber, price: price.total, deposit, checkoutUrl });
 }

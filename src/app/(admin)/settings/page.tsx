@@ -5,6 +5,7 @@ import { listServices } from "@/lib/repo/services";
 import { emailStatus, smsStatus } from "@/lib/notify/providers";
 import { goLiveStatus } from "@/lib/actions/golive";
 import { listBackups } from "@/lib/backup";
+import { stripeStatus } from "@/lib/payments/stripe";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Settings" };
@@ -26,6 +27,8 @@ export default async function SettingsPage({
         sms={smsStatus()}
         goLiveChecks={await goLiveStatus()}
         backups={listBackups()}
+        stripe={stripeStatus()}
+        exampleJobPrice={listServices(true)[0]?.base_price ?? 1000}
       />
     </Suspense>
   );

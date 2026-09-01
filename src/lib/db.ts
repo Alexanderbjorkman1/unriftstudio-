@@ -258,6 +258,24 @@ export function migrate(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_messages_pending ON messages(status, send_after);
     CREATE INDEX IF NOT EXISTS idx_messages_job ON messages(job_id);
 
+    /* Card payments. provider_ref is the Stripe session id, and is unique so a
+       webhook delivered twice cannot be recorded as two payments. */
+    CREATE TABLE IF NOT EXISTS payments (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      job_id       INTEGER REFERENCES jobs(id) ON DELETE SET NULL,
+      invoice_id   INTEGER REFERENCES invoices(id) ON DELETE SET NULL,
+      kind         TEXT NOT NULL,
+      amount       INTEGER NOT NULL,
+      currency     TEXT NOT NULL DEFAULT 'sek',
+      status       TEXT NOT NULL DEFAULT 'pending',
+      provider     TEXT NOT NULL DEFAULT 'stripe',
+      provider_ref TEXT UNIQUE,
+      created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+      paid_at      TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_payments_job ON payments(job_id);
+
     CREATE INDEX IF NOT EXISTS idx_jobs_scheduled ON jobs(scheduled_at);
     CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
     CREATE INDEX IF NOT EXISTS idx_jobs_assigned ON jobs(assigned_to);

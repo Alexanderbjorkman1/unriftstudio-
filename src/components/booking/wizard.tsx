@@ -184,6 +184,12 @@ export function BookingWizard({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
+      // A deposit sends the customer to the card page; otherwise straight to
+      // the confirmation. The booking is already saved in both cases.
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
       router.push(`/booking/${data.jobNumber}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");

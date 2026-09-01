@@ -236,6 +236,7 @@ export async function saveSettingsAction(form: FormData) {
     sms_sender: str(form, "sms_sender"),
     reminder_hours_before: num(form, "reminder_hours_before", 24),
     owner_alert_email: str(form, "owner_alert_email"),
+    deposit_percent: Math.min(100, Math.max(0, num(form, "deposit_percent", 0))),
   };
   saveSettings(patch);
   revalidatePath("/settings");

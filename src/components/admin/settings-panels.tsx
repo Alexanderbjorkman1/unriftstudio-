@@ -8,6 +8,8 @@ import { Badge, Button, Card, Field, Input, Select, Textarea, cn } from "@/compo
 import { deleteServiceAction, saveServiceAction, saveSettingsAction } from "@/lib/actions/crm";
 import { MessagesSettings, type ProviderView } from "@/components/admin/messages-settings";
 import { GoLiveSettings } from "@/components/admin/golive-settings";
+import { PaymentsSettings } from "@/components/admin/payments-settings";
+import type { StripeStatus } from "@/lib/payments/stripe";
 import type { GoLiveCheck } from "@/lib/actions/golive";
 import type { BackupFile } from "@/lib/backup";
 import { duration, money } from "@/lib/format";
@@ -20,6 +22,7 @@ const TABS = [
   { value: "services", label: "Services" },
   { value: "pricing", label: "Pricing rules" },
   { value: "messages", label: "Messages" },
+  { value: "payments", label: "Payments" },
   { value: "golive", label: "Go live" },
 ];
 
@@ -32,6 +35,8 @@ export function SettingsPanels({
   sms,
   goLiveChecks,
   backups,
+  stripe,
+  exampleJobPrice,
 }: {
   settings: BusinessSettings;
   services: Service[];
@@ -41,6 +46,8 @@ export function SettingsPanels({
   sms: ProviderView;
   goLiveChecks: GoLiveCheck[];
   backups: BackupFile[];
+  stripe: StripeStatus;
+  exampleJobPrice: number;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -89,6 +96,9 @@ export function SettingsPanels({
           {tab === "booking" && <BookingPanel settings={settings} />}
           {tab === "pricing" && <PricingPanel settings={settings} />}
           {tab === "messages" && <MessagesSettings settings={settings} email={email} sms={sms} />}
+          {tab === "payments" && (
+            <PaymentsSettings settings={settings} stripe={stripe} exampleJobPrice={exampleJobPrice} />
+          )}
 
           <Button type="submit" size="lg">
             Save settings
@@ -134,6 +144,10 @@ function HiddenSettings({ settings, tab }: { settings: BusinessSettings; tab: st
       ["size_large", settings.size_multiplier.large],
       ["size_xl", settings.size_multiplier.xl],
     );
+  }
+
+  if (tab !== "payments") {
+    fields.push(["deposit_percent", settings.deposit_percent]);
   }
 
   if (tab !== "messages") {
